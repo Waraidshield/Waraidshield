@@ -1,17 +1,11 @@
+
 // SPDX-License-Identifier: MIT
-// Copyright (c) 2024 Waraidshield
+// Copyright (c) 2024 [Waraid]
 
 /**
  * MichaelWaraid
- * Official Website: https://aidwarrescue.com/
- * Logo URL: https://aidwarrescue.com/wp-content/uploads/2024/08/Default_A_stylized_modern_letter_W_as_a_logo_for_a_cryptocurre_0.png
- * Email: shield.stop@aidwarrescue.com
- * Additional Email: waraid.shield@gmail.com
- * 
- * Social Media:
- * Telegram: https://t.me/waraid_shield
- * Twitter: https://x.com/aid_war99134
- * YouTube: https://www.youtube.com/@waraid
+ * GitHub Website: https://github.com/[YourGitHub]
+ * GitHub: https://github.com/[YourGitHub]
  */
 
 /**
@@ -34,10 +28,12 @@
  * SOFTWARE.
  */
 
-pragma solidity ^0.4.21;
+pragma solidity ^0.8.0;
 
-contract simpleToken {
-    uint256 totalSupply_;
+contract SimpleToken {
+    using SafeMath for uint256;
+
+    uint256 private totalSupply_;
     string public constant name = "waraid";
     string public constant symbol = "WARA";
     uint8 public constant decimals = 6;
@@ -48,6 +44,12 @@ contract simpleToken {
 
     mapping (address => uint256) balances;
     mapping (address => mapping (address => uint256)) allowed;
+
+    constructor() {
+        totalSupply_ = initialSupply;
+        balances[msg.sender] = initialSupply;
+        emit Transfer(address(0), msg.sender, initialSupply);
+    }
 
     function totalSupply() public view returns (uint256) {
         return totalSupply_;
@@ -62,10 +64,11 @@ contract simpleToken {
     }
 
     function transfer(address _to, uint256 _value) public returns (bool) {
-        require(_to != address(0));
-        require(balances[msg.sender] >= _value);
-        balances[msg.sender] = balances[msg.sender] - _value;
-        balances[_to] = balances[_to] + _value;
+        require(_to != address(0), "Cannot transfer to the zero address");
+        require(balances[msg.sender] >= _value, "Insufficient balance");
+
+        balances[msg.sender] = balances[msg.sender].sub(_value);
+        balances[_to] = balances[_to].add(_value);
         emit Transfer(msg.sender, _to, _value);
         return true;
     }
@@ -77,18 +80,19 @@ contract simpleToken {
     }
 
     function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
-        require(_to != address(0));
-        require(_value <= balances[_from]);
-        require(_value <= allowed[_from][msg.sender]);
-        balances[_from] = balances[_from] - _value;
-        balances[_to] = balances[_to] + _value;
-        allowed[_from][msg.sender] = allowed[_from][msg.sender] - _value;
+        require(_to != address(0), "Cannot transfer to the zero address");
+        require(_value <= balances[_from], "Insufficient balance");
+        require(_value <= allowed[_from][msg.sender], "Allowance exceeded");
+
+        balances[_from] = balances[_from].sub(_value);
+        balances[_to] = balances[_to].add(_value);
+        allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_value);
         emit Transfer(_from, _to, _value);
         return true;
     }
 
     function increaseApproval(address _spender, uint256 _addedValue) public returns (bool) {
-        allowed[msg.sender][_spender] = allowed[msg.sender][_spender] + _addedValue;
+        allowed[msg.sender][_spender] = allowed[msg.sender][_spender].add(_addedValue);
         emit Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
         return true;
     }
@@ -98,15 +102,49 @@ contract simpleToken {
         if (_subtractedValue > oldValue) {
             allowed[msg.sender][_spender] = 0;
         } else {
-            allowed[msg.sender][_spender] = oldValue - _subtractedValue;
+            allowed[msg.sender][_spender] = oldValue.sub(_subtractedValue);
         }
         emit Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
         return true;
     }
 
-    function simpleToken() public {
-        totalSupply_ = initialSupply;
-        balances[msg.sender] = initialSupply;
-        emit Transfer(0x0, msg.sender, initialSupply);
+    // SafeMath library
+    library SafeMath {
+        function add(uint256 a, uint256 b) internal pure returns (uint256) {
+            uint256 c = a + b;
+            require(c >= a, "Addition overflow");
+
+            return c;
+        }
+
+        function sub(uint256 a, uint256 b) internal pure returns (uint256) {
+            require(b <= a, "Subtraction overflow");
+            uint256 c = a - b;
+
+            return c;
+        }
+
+        function mul(uint256 a, uint256 b) internal pure returns (uint256) {
+            if (a == 0) {
+                return 0;
+            }
+
+            uint256 c = a * b;
+            require(c / a == b, "Multiplication overflow");
+
+            return c;
+        }
+
+        function div(uint256 a, uint256 b) internal pure returns (uint256) {
+            require(b > 0, "Division by zero");
+            uint256 c = a / b;
+
+            return c;
+        }
+
+        function mod(uint256 a, uint256 b) internal pure returns (uint256) {
+            require(b != 0, "Modulo by zero");
+            return a % b;
+        }
     }
 }
